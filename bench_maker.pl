@@ -6,12 +6,16 @@ use v5.36;
 
 # my @configs = ([1_000_000, 1], [100_000, 10], [10_000, 100], [1_000, 1_000], [100, 10_000], [10, 100_000], [1, 1_000_000]);
 # my @configs = ([100000, 1], [10000, 10], [1000, 100], [100, 1000], [10, 10000], [1, 100000]);
-my @configs = ([10000, 1], [1000, 10], [100, 100], [10, 1000], [1, 10000]);
+# my @configs = ([10000, 1], [1000, 10], [100, 100], [10, 1000], [1, 10000]);
+my @configs = ([100, 1], [10, 10], [1, 100], [1, 10], [10, 1]);
+# my @configs = ([10, 100]);
 
 open my $fh, '>', "lib/autogen_benchmarks.ex"
   or die "Could not open benchmark file";
 
 print $fh "defmodule AutogenBenchmarks do\n";
+
+`rm -f lib/autogen_benchmarks/bench_*.ex`;
 
 for my $conf (@configs) {
   my $runner = fmt_runner($conf->[0], $conf->[1]);
@@ -57,12 +61,16 @@ sub fmt($try_blocks, $block_size, $mod_prefix = "Bench") {
   $acc .= "  defchor [$actor1, $actor2] do\n";
   $acc .= "    def run() do\n";
 
-  for my $block_idx (1..$try_blocks) {
+  for my $bi (1..$try_blocks) {
     $acc .= "      try do\n";
-    for my $block_size (1..$block_size) {
-      $acc .= "        ${actor1}.(1) ~> ${actor2}.(x)\n";
-      $acc .= "        ${actor2}.(x + 1) ~> ${actor1}.(y)\n";
-      $acc .= "        ${actor1}.(y + 1)\n";
+    for my $ci (1..$block_size) {
+      # my $x_var = "x_${bi}_${ci}";
+      # my $y_var = "y_${bi}_${ci}";
+      # $acc .= "        ${actor1}.(1) ~> ${actor2}.($x_var)\n";
+      # $acc .= "        ${actor2}.($x_var + 1) ~> ${actor1}.($y_var)\n";
+      # $acc .= "        ${actor1}.($y_var + 1)\n";
+      $acc .= "        ${actor1}.(1) ~> ${actor2}.(_x)\n";
+      $acc .= "        ${actor2}.(2) ~> ${actor1}.(_y)\n";
     }
     $acc .= "      rescue\n";
     $acc .= "        ${actor1}.(42)\n";
