@@ -1,21 +1,8 @@
 # ChorexBenchmarks
 
-**TODO: Add description**
+Running the benchmarks:
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `chorex_benchmarks` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:chorex_benchmarks, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/chorex_benchmarks>.
-
+ 1. Clone this repo.
+ 2. Run `perl bench_maker.pl`. This generates files inside `lib/autogen_benchmarks/` and some helper scripts in `lib/autogen_benchmarks.ex`. You shouldn't need to interact with these directly.
+ 3. Fire up `iex -S mix`. It will take a long time to compile. (~3–5 minutes on a modern machine with plenty of RAM.)
+ 4. Run the benchmarks with `ChorexBenchmarks.stats()`. This takes about 3 minutes.
