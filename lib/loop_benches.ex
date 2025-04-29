@@ -1,69 +1,9 @@
 defmodule LoopBenches do
   import Chorex
 
-  # quote do
-  #   defchor [Runner, Monitor] do
-  #     def run(Monitor.(laps), Monitor.(do_try?), Runner.(split_work?)) do
-  #       if Monitor.(do_try?) do
-  #         loop_try(Monitor.(laps), Runner.(0), Runner.(split_work?))
-  #       else
-  #         loop_no_try(Monitor.(laps), Runner.(0), Runner.(split_work?))
-  #       end
-  #     end
-
-  #     def loop_try(Monitor.(laps), Runner.(lap_no), Runner.(split_work?)) do
-  #       if Runner.(split_work?) do
-  #         try do
-  #           Runner.(lap_no) ~> Monitor.(l)
-  #           if Monitor.(l >= laps) do
-  #             Monitor.(:done)
-  #             Runner.(:finished)
-  #           else
-  #             loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
-  #             Monitor.work_hard()
-  #           end
-  #         rescue
-  #           loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
-  #         end
-  #         Runner.work_hard()
-  #       else
-  #         try do
-  #           Runner.(lap_no) ~> Monitor.(l)
-  #           if Monitor.(l >= laps) do
-  #             Monitor.(:done)
-  #             Runner.(:finished)
-  #           else
-  #             loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
-  #             Monitor.work_hard()
-  #             Runner.work_hard()
-  #           end
-  #         rescue
-  #           loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
-  #         end
-  #       end
-  #     end
-
-  #     def loop_no_try(Monitor.(laps), Runner.(lap_no), Runner.(split_work?)) do
-  #       Runner.(lap_no) ~> Monitor.(l)
-  #       if Monitor.(l >= laps) do
-  #         Monitor.(:done)
-  #         Runner.(:finished)
-  #       else
-  #         loop_no_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
-  #         Monitor.work_hard()
-  #         Runner.work_hard()
-  #       end
-  #     end
-  #   end
-  # end
-  # |> Macro.expand_once(__ENV__)
-  # |> Macro.to_string()
-  # |> IO.puts()
-
   defmodule PlainLoop do
     defchor [Runner, Monitor] do
       def run(Monitor.(laps), Monitor.(do_try?), Runner.(split_work?)) do
-        # Monitor.(dbg({laps, do_try?}))
         if Monitor.(do_try?) do
           loop_try(Monitor.(laps), Runner.(0), Runner.(split_work?))
         else
@@ -72,24 +12,19 @@ defmodule LoopBenches do
       end
 
       def loop_try(Monitor.(laps), Runner.(lap_no), Runner.(split_work?)) do
-        # Runner.(dbg({lap_no, split_work?}))
         if Runner.(split_work?) do
           try do
             Runner.(lap_no) ~> Monitor.(l)
             if Monitor.(l >= laps) do
               Monitor.(:done)
               Runner.(:finished)
-              # Runner.(dbg(:finished))
-              # Monitor.(dbg(:done))
             else
               loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
               Monitor.work_hard()
             end
-            # Runner.(dbg(:bubble_uppp))
           rescue
             loop_try(Monitor.(laps), Runner.(lap_no + 1), Runner.(split_work?))
           end
-          # Runner.(dbg(:bubble_up))
           Runner.work_hard()
         else
           try do
@@ -122,8 +57,49 @@ defmodule LoopBenches do
     end
   end
 
-  defmodule MyRunner do
-    use PlainLoop.Chorex, :runner
+  defmodule FlatLoop do
+    defchor [FlatRunner, FlatMonitor] do
+      def run(FlatMonitor.(laps), FlatMonitor.(do_try?)) do
+        if FlatMonitor.(do_try?) do
+          loop_try(FlatMonitor.(laps), FlatRunner.(0))
+        else
+          loop_no_try(FlatMonitor.(laps), FlatRunner.(0))
+        end
+      end
+
+      def loop_try(FlatMonitor.(laps), FlatRunner.(n)) do
+        FlatRunner.(n) ~> FlatMonitor.(l)
+        if FlatMonitor.(l <= laps) do
+          try do
+            FlatMonitor.work_hard()
+            FlatRunner.work_hard()
+          rescue
+            FlatMonitor.work_hard()
+            FlatRunner.work_hard()
+          end
+          loop_try(FlatMonitor.(laps), FlatRunner.(n + 1))
+        else
+          FlatMonitor.(:done)
+          FlatRunner.(:finished)
+        end
+      end
+
+      def loop_no_try(FlatMonitor.(laps), FlatRunner.(n)) do
+        FlatRunner.(n) ~> FlatMonitor.(l)
+        if FlatMonitor.(l <= laps) do
+          FlatMonitor.work_hard()
+          FlatRunner.work_hard()
+          loop_no_try(FlatMonitor.(laps), FlatRunner.(n + 1))
+        else
+          FlatMonitor.(:done)
+          FlatRunner.(:finished)
+        end
+      end
+    end
+  end
+
+  defmodule MyFlatRunner do
+    use FlatLoop.Chorex, :flatrunner
 
     @impl true
     def work_hard() do
@@ -131,6 +107,31 @@ defmodule LoopBenches do
       for i <- 0..1000 do
         :crypto.hash(:sha256, "foo#{i}")
       end
+      # |> length()
+    end
+  end
+
+  defmodule MyFlatMonitor do
+    use FlatLoop.Chorex, :flatmonitor
+
+    @impl true
+    def work_hard() do
+      for i <- 0..1000 do
+        :crypto.hash(:sha256, "foo#{i}")
+      end
+      # |> length()
+    end
+  end
+
+  defmodule MyRunner do
+    use PlainLoop.Chorex, :runner
+
+    @impl true
+    def work_hard() do
+      for i <- 0..1000 do
+        :crypto.hash(:sha256, "foo#{i}")
+      end
+      |> length()
     end
   end
 
@@ -139,17 +140,31 @@ defmodule LoopBenches do
 
     @impl true
     def work_hard() do
-      # IO.puts(".")
       for i <- 0..1000 do
         :crypto.hash(:sha256, "foo#{i}")
       end
+      |> length()
     end
+  end
+
+  def flat_runner(laps \\ 100, use_try? \\ true) do
+    Chorex.start(FlatLoop.Chorex, %{FlatRunner => MyFlatRunner, FlatMonitor => MyFlatMonitor}, [laps, use_try?])
+
+    m1 = receive do
+	  {:chorex_return, _, _} = m ->
+		m
+    end
+
+    m2 = receive do
+	  {:chorex_return, _, _} = m ->
+		m
+    end
+
+    {m1, m2}
   end
 
   def runner(laps \\ 100, use_try? \\ true, split_work? \\ true) do
     Chorex.start(PlainLoop.Chorex, %{Runner => MyRunner, Monitor => MyMonitor}, [laps, use_try?, split_work?])
-
-    # dbg(:started)
 
     m1 =
       receive do
@@ -278,3 +293,4 @@ defmodule LoopBenches do
     end
   end
 end
+ 

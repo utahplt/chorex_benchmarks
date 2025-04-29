@@ -48,7 +48,7 @@ defmodule Helper do
       for block_idx <- 1..try_blocks do
         comms =
           for comm_idx <- 1..block_size do
-            comm_id = "#{block_idx}_#{comm_idx}"
+            _comm_id = "#{block_idx}_#{comm_idx}"
 
             quote do
               unquote(actor1).(1) ~> unquote(actor2).(_)
