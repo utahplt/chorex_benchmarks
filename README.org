@@ -40,7 +40,10 @@ JIT enabled: true
 | miniblock: without try block | 1.42 K  | 0.71 ms | ±35.00%   | 0.70 ms | 0.78 ms |
 | miniblock: with try block    | 0.147 K | 6.80 ms | ±13.09%   | 6.58 ms | 8.91 ms |
 
-| Comparison                   | ips     | slowdown              |
+
+Comparison
+
+| Name                         | ips     | slowdown              |
 |------------------------------+---------+-----------------------|
 | miniblock: without try block | 1.42 K  |                       |
 | miniblock: with try block    | 0.147 K | 9.65x slower +6.10 ms |
@@ -55,9 +58,12 @@ JIT enabled: true
 | flat loop with try, 1000 iterations    | 3.80 | 263.16 ms | ±4.74%    | 258.63 ms | 296.86 ms |
 | flat loop without try, 1000 iterations | 3.79 | 264.09 ms | ±8.35%    | 273.21 ms | 285.60 ms |
 
-| Comparison                             |  ips | slowdown              |
+
+Comparison
+
+| Name                                   |  ips | slowdown              |
 |----------------------------------------+------+-----------------------|
-| flat loop with try, 1000 iterations    | 3.80 |                       |
+| 
 | flat loop without try, 1000 iterations | 3.79 | 1.00x slower +0.93 ms |
 
 *** 10,000 iterations
@@ -67,7 +73,10 @@ JIT enabled: true
 | flat loop without try, 10000 iterations | 0.37 | 2.74 s  | ±0.24%    | 2.74 s | 2.75 s |
 | flat loop with try, 10000 iterations    | 0.34 | 2.92 s  | ±0.10%    | 2.92 s | 2.93 s |
 
-| Comparison                              |  ips | slowdown              |
+
+Comparison
+
+| Name                                    |  ips | slowdown              |
 |-----------------------------------------+------+-----------------------|
 | flat loop without try, 10000 iterations | 0.37 |                       |
 | flat loop with try, 10000 iterations    | 0.34 | 1.07x slower +0.186 s |
@@ -83,7 +92,11 @@ JIT enabled: true
 | loop: with try, 100 iterations, no split work | 41.73 | 23.96 ms | ±15.59%   | 23.70 ms | 25.95 ms |
 | loop: with try, 100 iterations, split work    | 40.54 | 24.67 ms | ±2.35%    | 24.53 ms | 26.57 ms |
 
-| Comparison:                                   |       |                         |
+
+Comparison
+
+| Name                                          |       |                         |
+|-----------------------------------------------+-------+-------------------------|
 | loop: no try, 100 iterations, no split work   | 47.41 |                         |
 | loop: no try, 100 iterations, split work      | 47.39 | 1.00x slower +0.0106 ms |
 | loop: with try, 100 iterations, no split work | 41.73 | 1.14x slower +2.87 ms   |
@@ -98,7 +111,10 @@ JIT enabled: true
 | loop: with try, 1000 iterations, no split work | 2.21 | 452.92 ms | ±9.89%    | 455.50 ms | 541.35 ms |
 | loop: with try, 1000 iterations, split work    | 2.20 | 455.05 ms | ±9.61%    | 454.87 ms | 541.07 ms |
 
-| Comparison                                     |  ips | slowdown                |
+
+Comparison
+
+| Name                                           |  ips | slowdown                |
 |------------------------------------------------+------+-------------------------|
 | loop: no try, 1000 iterations, split work      | 4.76 |                         |
 | loop: no try, 1000 iterations, no split work   | 4.75 | 1.00x slower +0.0657 ms |
@@ -114,7 +130,10 @@ JIT enabled: true
 | loop: with try, 10000 iterations, no split work | 0.0258 | 38.83 s | ±0.00%    | 38.83 s | 38.83 s |
 | loop: with try, 10000 iterations, split work    | 0.0225 | 44.54 s | ±0.00%    | 44.54 s | 44.54 s |
 
-| Comparison                                      |    ips | slowdown                |
+
+Comparison
+
+| Name                                            |    ips | slowdown                |
 |-------------------------------------------------+--------+-------------------------|
 | loop: no try, 10000 iterations, split work      |   0.50 |                         |
 | loop: no try, 10000 iterations, no split work   |   0.50 | 1.00x slower +0.00480 s |
@@ -129,7 +148,10 @@ JIT enabled: true
 | state machine with try            | 1.97 K | 506.92 μs | ±35.77%   | 510.54 μs | 816.90 μs |
 | state machine with try & recovery | 1.96 K | 509.54 μs | ±36.43%   | 508.38 μs | 824.76 μs |
  
-| Comparison                        | ips    | slowdown              |
+
+Comparison
+
+| Name                              | ips    | slowdown              |
 |-----------------------------------+--------+-----------------------|
 | state machine no try              | 1.99 K |                       |
 | state machine with try            | 1.97 K | 1.01x slower +3.18 μs |
@@ -142,7 +164,10 @@ JIT enabled: true
 | lots of actors, no try   | 141.16 | 7.08 ms | ±37.15%   | 6.49 ms | 18.54 ms |
 | lots of actors, with try | 139.98 | 7.14 ms | ±38.32%   | 6.44 ms | 18.31 ms |
 
-| Comparison               |    ips | slowdown                |
+
+Comparison
+
+| Name                     |    ips | slowdown                |
 |--------------------------+--------+-------------------------|
 | lots of actors, no try   | 141.16 |                         |
 | lots of actors, with try | 139.98 | 1.01x slower +0.0598 ms |
