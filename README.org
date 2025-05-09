@@ -1,0 +1,148 @@
+* ChorexBenchmarks
+
+Performance benchmarks for [Chorex](https://github.com/utahplt/chorex)
+
+* Synopsis
+
+#+begin_src
+bash$ iex -S mix
+iex> ChorexBenchmarks.stats()
+#+end_src
+
+* Description
+
+You will need a recent version of Elixir (1.18 or better is best) and at least Perl 5.36 (only if re-running =bench_maker.pl=) to use this.
+
+To run the benchmarks:
+
+ 1. Clone this repo.
+ 2. Get the dependencies (Chorex and Benchee) with =mix deps.get=.
+ 3. (/Optional/) Run =perl bench_maker.pl=. This will recreate the =big_chor.ex= file if needed.
+ 4. Fire up =iex -S mix=. This takes several seconds as the =big_chor.ex= file seems to take a while to compile.
+ 5. Run the benchmarks with =ChorexBenchmarks.stats()=. This takes about 3 minutes.
+
+* Benchmark results
+
+#+begin_src
+Operating System: macOS
+CPU Information: Apple M1 Pro
+Number of Available Cores: 10
+Available memory: 32 GB
+Elixir 1.18.0
+Erlang 27.2
+JIT enabled: true
+#+end_src
+
+** Miniblock
+
+| Name                         | ips     | average | deviation | median  | 99th %  |
+|------------------------------+---------+---------+-----------+---------+---------|
+| miniblock: without try block | 1.42 K  | 0.71 ms | ±35.00%   | 0.70 ms | 0.78 ms |
+| miniblock: with try block    | 0.147 K | 6.80 ms | ±13.09%   | 6.58 ms | 8.91 ms |
+
+| Comparison                   | ips     | slowdown              |
+|------------------------------+---------+-----------------------|
+| miniblock: without try block | 1.42 K  |                       |
+| miniblock: with try block    | 0.147 K | 9.65x slower +6.10 ms |
+
+
+** Flat Loops
+
+*** 1,000 iterations
+
+| Name                                   |  ips | average   | deviation | median    | 99th %    |
+|----------------------------------------+------+-----------+-----------+-----------+-----------|
+| flat loop with try, 1000 iterations    | 3.80 | 263.16 ms | ±4.74%    | 258.63 ms | 296.86 ms |
+| flat loop without try, 1000 iterations | 3.79 | 264.09 ms | ±8.35%    | 273.21 ms | 285.60 ms |
+
+| Comparison                             |  ips | slowdown              |
+|----------------------------------------+------+-----------------------|
+| flat loop with try, 1000 iterations    | 3.80 |                       |
+| flat loop without try, 1000 iterations | 3.79 | 1.00x slower +0.93 ms |
+
+*** 10,000 iterations
+
+| Name                                    |  ips | average | deviation | median | 99th % |
+|-----------------------------------------+------+---------+-----------+--------+--------|
+| flat loop without try, 10000 iterations | 0.37 | 2.74 s  | ±0.24%    | 2.74 s | 2.75 s |
+| flat loop with try, 10000 iterations    | 0.34 | 2.92 s  | ±0.10%    | 2.92 s | 2.93 s |
+
+| Comparison                              |  ips | slowdown              |
+|-----------------------------------------+------+-----------------------|
+| flat loop without try, 10000 iterations | 0.37 |                       |
+| flat loop with try, 10000 iterations    | 0.34 | 1.07x slower +0.186 s |
+
+** Deep Loops
+
+*** 100 iterations
+
+| Name                                          |   ips | average  | deviation | median   | 99th %   |
+|-----------------------------------------------+-------+----------+-----------+----------+----------|
+| loop: no try, 100 iterations, no split work   | 47.41 | 21.09 ms | ±0.85%    | 21.09 ms | 21.65 ms |
+| loop: no try, 100 iterations, split work      | 47.39 | 21.10 ms | ±0.84%    | 21.10 ms | 21.59 ms |
+| loop: with try, 100 iterations, no split work | 41.73 | 23.96 ms | ±15.59%   | 23.70 ms | 25.95 ms |
+| loop: with try, 100 iterations, split work    | 40.54 | 24.67 ms | ±2.35%    | 24.53 ms | 26.57 ms |
+
+| Comparison:                                   |       |                         |
+| loop: no try, 100 iterations, no split work   | 47.41 |                         |
+| loop: no try, 100 iterations, split work      | 47.39 | 1.00x slower +0.0106 ms |
+| loop: with try, 100 iterations, no split work | 41.73 | 1.14x slower +2.87 ms   |
+| loop: with try, 100 iterations, split work    | 40.54 | 1.17x slower +3.57 ms   |
+
+*** 1,000 iterations
+
+| Name                                           |  ips | average   | deviation | median    | 99th %    |
+|------------------------------------------------+------+-----------+-----------+-----------+-----------|
+| loop: no try, 1000 iterations, split work      | 4.76 | 210.27 ms | ±0.36%    | 210.17 ms | 214.66 ms |
+| loop: no try, 1000 iterations, no split work   | 4.75 | 210.34 ms | ±0.28%    | 210.34 ms | 212.55 ms |
+| loop: with try, 1000 iterations, no split work | 2.21 | 452.92 ms | ±9.89%    | 455.50 ms | 541.35 ms |
+| loop: with try, 1000 iterations, split work    | 2.20 | 455.05 ms | ±9.61%    | 454.87 ms | 541.07 ms |
+
+| Comparison                                     |  ips | slowdown                |
+|------------------------------------------------+------+-------------------------|
+| loop: no try, 1000 iterations, split work      | 4.76 |                         |
+| loop: no try, 1000 iterations, no split work   | 4.75 | 1.00x slower +0.0657 ms |
+| loop: with try, 1000 iterations, no split work | 2.21 | 2.15x slower +242.64 ms |
+| loop: with try, 1000 iterations, split work    | 2.20 | 2.16x slower +244.77 ms |
+
+*** 10,000 iterations
+
+| Name                                            |    ips | average | deviation | median  | 99th %  |
+|-------------------------------------------------+--------+---------+-----------+---------+---------|
+| loop: no try, 10000 iterations, split work      |   0.50 | 1.98 s  | ±0.22%    | 1.98 s  | 1.99 s  |
+| loop: no try, 10000 iterations, no split work   |   0.50 | 1.99 s  | ±0.85%    | 1.98 s  | 2.03 s  |
+| loop: with try, 10000 iterations, no split work | 0.0258 | 38.83 s | ±0.00%    | 38.83 s | 38.83 s |
+| loop: with try, 10000 iterations, split work    | 0.0225 | 44.54 s | ±0.00%    | 44.54 s | 44.54 s |
+
+| Comparison                                      |    ips | slowdown                |
+|-------------------------------------------------+--------+-------------------------|
+| loop: no try, 10000 iterations, split work      |   0.50 |                         |
+| loop: no try, 10000 iterations, no split work   |   0.50 | 1.00x slower +0.00480 s |
+| loop: with try, 10000 iterations, no split work | 0.0258 | 19.57x slower +36.84 s  |
+| loop: with try, 10000 iterations, split work    | 0.0225 | 22.46x slower +42.56 s  |
+
+** State Machine
+
+| Name                              | ips    | average   | deviation | median    | 99th %    |
+|-----------------------------------+--------+-----------+-----------+-----------+-----------|
+| state machine no try              | 1.99 K | 503.74 μs | ±816.82%  | 476.71 μs | 759.63 μs |
+| state machine with try            | 1.97 K | 506.92 μs | ±35.77%   | 510.54 μs | 816.90 μs |
+| state machine with try & recovery | 1.96 K | 509.54 μs | ±36.43%   | 508.38 μs | 824.76 μs |
+ 
+| Comparison                        | ips    | slowdown              |
+|-----------------------------------+--------+-----------------------|
+| state machine no try              | 1.99 K |                       |
+| state machine with try            | 1.97 K | 1.01x slower +3.18 μs |
+| state machine with try & recovery | 1.96 K | 1.01x slower +5.80 μs |
+
+** Lots of Actors
+
+| Name                     |    ips | average | deviation | median  | 99th %   |
+|--------------------------+--------+---------+-----------+---------+----------|
+| lots of actors, no try   | 141.16 | 7.08 ms | ±37.15%   | 6.49 ms | 18.54 ms |
+| lots of actors, with try | 139.98 | 7.14 ms | ±38.32%   | 6.44 ms | 18.31 ms |
+
+| Comparison               |    ips | slowdown                |
+|--------------------------+--------+-------------------------|
+| lots of actors, no try   | 141.16 |                         |
+| lots of actors, with try | 139.98 | 1.01x slower +0.0598 ms |

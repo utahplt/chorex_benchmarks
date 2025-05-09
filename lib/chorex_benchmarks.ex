@@ -15,6 +15,18 @@ defmodule ChorexBenchmarks do
     :ok
   end
 
+  def big_chor_stats do
+    Benchee.run(
+      %{
+        "lots of actors, no try" => fn -> BigRunner.run(1, false) end,
+        "lots of actors, with try" => fn -> BigRunner.run(1, true) end
+      },
+      time: @time,
+      memory_time: @memory_time
+    )
+    :ok
+  end
+
   # state-machine stats
   def sm_stats do
     Logger.configure(level: :none) # suppress crash messages
@@ -93,7 +105,9 @@ defmodule ChorexBenchmarks do
         memory_time: @memory_time
       ),
 
-      sm_stats()
+      sm_stats(),
+
+      big_chor_stats()
     ]
     :ok
   end
