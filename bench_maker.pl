@@ -4,102 +4,70 @@ use warnings;
 
 use v5.36;
 
-# my @configs = ([1_000_000, 1], [100_000, 10], [10_000, 100], [1_000, 1_000], [100, 10_000], [10, 100_000], [1, 1_000_000]);
-# my @configs = ([100000, 1], [10000, 10], [1000, 100], [100, 1000], [10, 10000], [1, 100000]);
-# my @configs = ([10000, 1], [1000, 10], [100, 100], [10, 1000], [1, 10000]);
-my @configs = ([100, 1], [10, 10], [1, 100], [1, 10], [10, 1]);
-# my @configs = ([10, 100]);
+my $worker_count = 100;
 
-open my $fh, '>', "lib/autogen_benchmarks.ex"
-  or die "Could not open benchmark file";
+my @workers = map { "Worker$_" } 1..$worker_count;
+my $actor_list = join ', ', @workers;
 
-print $fh "defmodule AutogenBenchmarks do\n";
+my $dx = make_daisy_chain($worker_count, "x");
 
-`rm -f lib/autogen_benchmarks/bench_*.ex`;
+my $full_mod =<<__FULL_MOD__;
+defmodule BigChor do
+  import Chorex
 
-for my $conf (@configs) {
-  my $runner = fmt_runner($conf->[0], $conf->[1]);
-  print $fh $runner;
+  defchor [Dispatch, $actor_list] do
+    def run(Dispatch.(try?), Worker1.(x)) do
+      if Dispatch.(try?) do
+        daisy_try(Worker1.(x))
+      else
+        daisy_no_try(Worker1.(x))
+      end
+    end
 
-  my $code = fmt($conf->[0], $conf->[1]);
-  my ($x, $y) = ($conf->[0], $conf->[1]);
-  open my $mod_fh, '>', "lib/autogen_benchmarks/bench_${x}_${y}.ex"
-    or die "Could not open file";
-  print $mod_fh $code;
-  close $mod_fh;
-}
+    def daisy_try(Worker1.(x)) do
+      try do
+        with Worker1.(y) <- work(Worker1.(x)) do
+          try do
+            with Worker1.(z) <- work(Worker1.(y)) do
+              try do
+                work(Worker1.(z)
+              rescue
+                Worker1.(:boom2)
+              end
+            end
+          rescue
+            Worker1.(:boom1)
+          end
+        end
+      rescue
+        Worker1.(:boom0)
+      end
+    end
 
-print $fh "\nend\n";
+    def daisy_no_try(Worker1.(x)) do
+      with Worker1.(y) <- work(Worker1.(x)) do
+        with Worker1.(z) <- work(Worker1.(y)) do
+          work(Worker1.(z)
+        end
+      end
+    end
 
-close $fh;
-
-sub fmt_runner($try_blocks, $block_size, $mod_prefix = "Bench") {
-  say "Building runner for $try_blocks $block_size";
-  my $module = "$mod_prefix${try_blocks}x${block_size}";
-  my $actor1 = "${module}Alice";
-  my $actor2 = "${module}Bob";
-  my $actor1_impl = "${actor1}Impl";
-  my $actor2_impl = "${actor2}Impl";
-
-  my $runner = "run_" . lc($module);
-
-  return <<__runner__;
-def $runner() do
-  Chorex.start(${module}.Chorex, \%{$actor1 => $actor1_impl, $actor2 => $actor2_impl}, [])
+    def work(Worker1.(x)) do
+      $dx
+    end
+  end
 end
-__runner__
-}
+__FULL_MOD__
 
-sub fmt($try_blocks, $block_size, $mod_prefix = "Bench") {
-  my $module = "$mod_prefix${try_blocks}x${block_size}";
-  say "Building $module";
-  my $actor1 = "${module}Alice";
-  my $actor2 = "${module}Bob";
+sub make_daisy_chain($workers, $var_name) {
+  my $daisy_chain = "";
 
-  my $acc = "defmodule $module do\n";
-  $acc .= "  import Chorex\n\n";
-  $acc .= "  defchor [$actor1, $actor2] do\n";
-  $acc .= "    def run() do\n";
-
-  for my $bi (1..$try_blocks) {
-    $acc .= "      try do\n";
-    for my $ci (1..$block_size) {
-      # my $x_var = "x_${bi}_${ci}";
-      # my $y_var = "y_${bi}_${ci}";
-      # $acc .= "        ${actor1}.(1) ~> ${actor2}.($x_var)\n";
-      # $acc .= "        ${actor2}.($x_var + 1) ~> ${actor1}.($y_var)\n";
-      # $acc .= "        ${actor1}.($y_var + 1)\n";
-      $acc .= "        ${actor1}.(1) ~> ${actor2}.(_x)\n";
-      $acc .= "        ${actor2}.(2) ~> ${actor1}.(_y)\n";
-    }
-    $acc .= "      rescue\n";
-    $acc .= "        ${actor1}.(42)\n";
-    $acc .= "        ${actor2}.(42)\n";
-    $acc .= "      end\n";
+  for my $i (1..$workers) {
+    my $j = $i == $workers ? 1 : $i + 1;
+    $daisy_chain .=<<__CHAIN__;
+      Worker$i.($var_name + 1) ~> Worker$j.($var_name)
+__CHAIN__
   }
 
-  $acc .= "    ${actor1}.(1)\n";
-  $acc .= "    ${actor2}.(2)\n";
-  $acc .= "    end\n  end\nend\n\n";
-
-  # done defining module; build the runner
-
-  my $runner = "run_" . lc($module);
-  my $actor1lc = lc $actor1;
-  my $actor2lc = lc $actor2;
-  my $actor1_impl = "${actor1}Impl";
-  my $actor2_impl = "${actor2}Impl";
-
-  $acc .=<<__impls__;
-defmodule $actor1_impl do
-  use $module.Chorex, :$actor1lc
-end
-
-defmodule $actor2_impl do
-  use $module.Chorex, :$actor2lc
-end
-
-__impls__
-
-  return $acc;
+  return $daisy_chain;
 }

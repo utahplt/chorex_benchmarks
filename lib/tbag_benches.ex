@@ -1,6 +1,56 @@
 defmodule TbagBenches do
   import Chorex
 
+  # quote do
+  #   defchor [Gateway, Worker, Player] do
+  #     def run(Player.(conf), Gateway.(use_try?)) do
+  #       Player.get_name() ~> Gateway.(player_name)
+  #       Gateway.(player_name) ~> Worker.(player_name)
+
+  #       if Gateway.(use_try?) do
+  #         play_game(@move_safe/2, Player.(conf), Worker.(player_name), Worker.(:atrium))
+  #       else
+  #         play_game(@move_unsafe/2, Player.(conf), Worker.(player_name), Worker.(:atrium))
+  #       end
+  #     end
+
+  #     def play_game(movement, Player.(conf), Worker.(player_name), Worker.(game_state)) do
+  #       with Worker.({new_state, new_conf}) <- movement.(Worker.(game_state), Player.(conf)) do
+  #         if Worker.game_over?(new_state) do
+  #           Worker.("Thank you for playing " <> to_string(player_name)) ~> Player.(m)
+  #           Player.report(m, conf)
+  #         else
+  #           Worker.(new_conf) ~> Player.(new_conf)
+  #           play_game(movement, Player.(new_conf), Worker.(player_name), Worker.(new_state))
+  #         end
+  #       end
+  #     end
+
+  #     def move_safe(Worker.(game_state), Player.(conf)) do
+  #       try do
+  #         move_unsafe(Worker.(game_state), Player.(conf))
+  #       rescue
+  #         Worker.inform_failure() ~> Player.(feedback)
+  #         Player.report(feedback, conf) ~> Worker.(new_conf)
+  #         Worker.({game_state, new_conf})
+  #       end
+  #     end
+
+  #     def move_unsafe(Worker.(game_state), Player.(conf)) do
+  #       Worker.prompt(game_state) ~> Player.(prompt)
+  #       Player.make_move(prompt, conf) ~> Worker.(move)
+  #       with Worker.(new_state) <- Worker.realize_move(move, game_state) do
+  #         Worker.inform(new_state) ~> Player.(feedback)
+  #         Player.report(feedback, conf) ~> Worker.(new_player_conf)
+  #         Worker.({new_state, new_player_conf})
+  #       end
+  #     end
+  #   end
+  # end
+  # |> Macro.expand_once(__ENV__)
+  # |> Macro.to_string()
+  # |> IO.puts()
+
   defmodule TbagServer do
     defchor [Gateway, Worker, Player] do
       def run(Player.(conf), Gateway.(use_try?)) do
@@ -83,7 +133,7 @@ defmodule TbagBenches do
 
     @impl true
     def inform_failure() do
-      IO.puts("I'm sorry, that's not something I can do.")
+      # IO.puts("I'm sorry, that's not something I can do.")
       "I'm sorry, that's not something I can do."
     end
   end
@@ -109,11 +159,11 @@ defmodule TbagBenches do
     @impl true
     # flip back
     def report("I'm sorry, that's not something I can do.", _st) do
-      IO.puts("oops, made mistake")
+      # IO.puts("oops, made mistake")
       :good
     end
-    def report(msg, st) do
-      IO.puts("Feedback: #{msg}")
+    def report(_msg, st) do
+      # IO.puts("Feedback: #{msg}")
       st
     end
   end
