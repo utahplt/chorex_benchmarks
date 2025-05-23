@@ -220,10 +220,13 @@ defmodule LoopBenches do
       def search(Verifier.({data, n}), Searcher.({data, n}), Searcher.(x)) do
         Searcher.log(data, n, x)
         Verifier.log(data, n)
+        Searcher.(IO.write(:stderr, "x: " <> to_string(x) <> "\n"))
         try do
           with Searcher.(hash) <- Searcher.hash(data, n + x) do
-            Searcher.(hash) ~> Verifier.(hash)
-            if Verifier.good_hash?(hash) do
+            Searcher.({hash, x}) ~> Verifier.({hash, x})
+            if Verifier.good_hash?({hash, x}) do
+              Searcher.(IO.write(:stderr, "DONE" <> to_string(n + x) <> "\n"))
+              Verifier.(IO.write(:stderr, "DONE\n"))
               Searcher.(n + x) ~> Verifier.(final_nonce)
               Verifier.({final_nonce, hash})
             else
@@ -240,9 +243,23 @@ defmodule LoopBenches do
   defmodule MySearcher do
 	use MiniBlock.Chorex, :searcher
 
+    def dump_info() do
+      Process.get_keys() |> Enum.map(&{&1, Process.get(&1)})
+    end
+
     @impl true
     def hash(data, nonce) do
-	  :crypto.hash(:sha256, data <> <<nonce>>)
+	  h = :crypto.hash(:sha256, data <> <<nonce>>)
+      if 200 < nonce && nonce < 250  do
+        # IO.puts(:stderr, "hash: (#{inspect binary_slice(h, 0, 1)}) #{inspect(h)}")
+        dbg(dump_info())
+      end
+      if nonce > 280 do
+        dbg(dump_info())
+        send(self(), :dbg_state)
+        :init.stop()            # emergency break
+      end
+      h
     end
 
     @impl true
@@ -260,8 +277,45 @@ defmodule LoopBenches do
     end
 
     @impl true
+    def good_hash?({a, _}), do: good_hash?(a)
+
     def good_hash?(bin) do
 	  <<0>> == binary_slice(bin, 0, 1)
+    end
+
+    @impl true
+    def start_nonce() do
+	  42
+    end
+  end
+
+  defmodule VolitileVerifier do
+    use MiniBlock.Chorex, :verifier
+
+    @impl true
+    def log(_data, _n) do
+      # dbg({:verifier, n})
+    end
+
+    @impl true
+    def good_hash?({bin, x}) do
+	  if <<0>> == binary_slice(bin, 0, 1) do
+        # IO.write(:stderr, "good #{x}\n")
+        true
+      else
+        IO.write(:stderr, "bad #{x} #{inspect binary_slice(bin, 0, 1)} #{inspect self()}\n")
+        raise "Kaboom!"
+	  end
+    end
+
+    def good_hash?(bin) do
+	  if <<0>> == binary_slice(bin, 0, 1) do
+        IO.write(:stderr, "good ")
+        true
+      else
+        IO.write(:stderr, "bad #{inspect binary_slice(bin, 0, 1)}")
+        raise "Kaboom!"
+	  end
     end
 
     @impl true
@@ -283,14 +337,37 @@ defmodule LoopBenches do
   end
 
   def block_runner_no_try(data \\ "hello") do
+    # IO.write(:stderr, ",")
     Chorex.start(MiniBlock.Chorex, %{Searcher => MySearcher, Verifier => MyVerifier}, [data, false])
+    # IO.write(:stderr, ".")
 
     receive do
-	  {:chorex_return, _, _} = m -> m
+	  {:chorex_return, _, _} = m ->
+        # IO.write(:stderr, ":")
+        m
     end
     receive do
-	  {:chorex_return, _, _} = m -> m
+	  {:chorex_return, _, _} = m ->
+        # IO.write(:stderr, ";")
+        m
+    end
+  end
+
+  def block_runner_try_and_rescue(data \\ "hello") do
+    # IO.write(:stderr, ",")
+    Chorex.start(MiniBlock.Chorex, %{Searcher => MySearcher, Verifier => VolitileVerifier}, [data, true])
+    # IO.write(:stderr, ".")
+
+    # Getting strange hangs with this
+    receive do
+	  {:chorex_return, _, _} = m ->
+        # IO.write(:stderr, ":")
+        m
+    end
+    receive do
+	  {:chorex_return, _, _} = m ->
+        # IO.write(:stderr, ";")
+        m
     end
   end
 end
- 

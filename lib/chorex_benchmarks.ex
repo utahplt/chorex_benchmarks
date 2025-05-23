@@ -1,5 +1,5 @@
 defmodule ChorexBenchmarks do
-  @time 20
+  @time 10
   @memory_time 0
 
   def smol_stats do
@@ -43,16 +43,26 @@ defmodule ChorexBenchmarks do
     :ok
   end
 
+  def miniblock_stats do
+    # :logger.add_primary_filter(:dbg_filter, {&LogFilter.filter/2, []})
+    Logger.configure(level: :alert) # suppress crash messages
+    # Logger.configure(level: :none) # suppress crash messages
+    Benchee.run(
+      %{
+        # "miniblock: with try block" => fn -> LoopBenches.block_runner_try() end,
+        # "miniblock: without try block" => fn -> LoopBenches.block_runner_no_try() end,
+        "miniblock: using rescue" => fn -> LoopBenches.block_runner_try_and_rescue() end,
+      },
+      time: @time,
+      memory_time: @memory_time
+    )
+    Logger.configure(level: :warning) # restore
+    :ok
+  end
+
   def stats do
     [
-      Benchee.run(
-        %{
-          "miniblock: with try block" => fn -> LoopBenches.block_runner_try() end,
-          "miniblock: without try block" => fn -> LoopBenches.block_runner_no_try() end,
-        },
-        time: @time,
-        memory_time: @memory_time
-      ),
+      miniblock_stats(),
 
       Benchee.run(
         %{
