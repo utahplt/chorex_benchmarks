@@ -49,8 +49,8 @@ defmodule ChorexBenchmarks do
     # Logger.configure(level: :none) # suppress crash messages
     Benchee.run(
       %{
-        # "miniblock: with try block" => fn -> LoopBenches.block_runner_try() end,
-        # "miniblock: without try block" => fn -> LoopBenches.block_runner_no_try() end,
+        "miniblock: with try block" => fn -> LoopBenches.block_runner_try() end,
+        "miniblock: without try block" => fn -> LoopBenches.block_runner_no_try() end,
         "miniblock: using rescue" => fn -> BadBatch.block_runner_try_and_rescue() end,
       },
       time: @time,

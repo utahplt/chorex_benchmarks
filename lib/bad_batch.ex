@@ -1,7 +1,7 @@
 defmodule BadBatch do
   import Chorex
 
-  defmodule MiniBlock do
+  quote do
     defchor [Searcher, Verifier] do
       def run(Verifier.(data), Verifier.(do_try?)) do
         with Verifier.(start_nonce) <- Verifier.start_nonce() do
@@ -16,6 +16,41 @@ defmodule BadBatch do
       def search(Verifier.({data, n}), Searcher.({data, n}), Searcher.(x)) do
         try do
           with Searcher.(hash) <- Searcher.hash(data, n + x) do
+            # dbg_comm(Searcher.({hash, x}) ~> Verifier.({hash, x}))
+            if Verifier.good_hash?({hash, x}) do
+              Searcher.(n + x) ~> Verifier.(final_nonce)
+              Verifier.({final_nonce, hash})
+            else
+              search(Verifier.({data, n}), Searcher.({data, n}), Searcher.(x + 1))
+            end
+          end
+        rescue
+          search(Verifier.({data, n}), Searcher.({data, n}), Searcher.(x + 1))
+        end
+      end
+    end
+  end
+  |> Macro.expand_once(__ENV__)
+  |> Macro.to_string()
+  |> IO.puts()
+
+  defmodule MiniBlock do
+    defchor [Searcher, Verifier] do
+      def run(Verifier.(data), Verifier.(do_try?)) do
+        with Verifier.(start_nonce) <- Verifier.start_nonce() do
+          Verifier.({data, start_nonce}) ~> Searcher.({data, start_nonce})
+          with Verifier.({nonce, hash}) <- search(Verifier.({data, start_nonce}), Searcher.({data, start_nonce}), Searcher.(0)) do
+            Verifier.({nonce, hash})
+            Searcher.(:good_job)
+          end
+        end
+      end
+
+
+      def search(Verifier.({data, n}), Searcher.({data, n}), Searcher.(x)) do
+        try do
+          with Searcher.(hash) <- Searcher.hash(data, n + x) do
+            # dbg_comm(Searcher.({hash, x}) ~> Verifier.({hash, x}))
             Searcher.({hash, x}) ~> Verifier.({hash, x})
             if Verifier.good_hash?({hash, x}) do
               Searcher.(n + x) ~> Verifier.(final_nonce)
@@ -42,8 +77,8 @@ defmodule BadBatch do
         # Logger.error("hash: (#{inspect binary_slice(h, 0, 1)}) #{inspect(h)}")
         # IO.write(:stderr, "hash: (#{inspect binary_slice(h, 0, 1)}) #{inspect(h)}")
       end
-      if nonce > 280 do
-        send(self(), :dbg_state)
+      if nonce == 280 do
+        # send(self(), :dbg_state)
         :init.stop()            # emergency break
       end
       h
@@ -61,17 +96,17 @@ defmodule BadBatch do
         true
       else
         # Logger.error("bad #{x} #{inspect binary_slice(bin, 0, 1)} #{inspect self()}\n")
-        IO.write(:stderr, "bad #{x} #{inspect binary_slice(bin, 0, 1)}\n")
+        # IO.write(:stderr, "bad #{x} #{inspect binary_slice(bin, 0, 1)}\n")
         raise "Kaboom!"
 	  end
     end
 
     def good_hash?(bin) do
 	  if <<0>> == binary_slice(bin, 0, 1) do
-        IO.write(:stderr, "good ")
+        # IO.write(:stderr, "good ")
         true
       else
-        IO.write(:stderr, "bad #{inspect binary_slice(bin, 0, 1)}")
+        # IO.write(:stderr, "bad #{inspect binary_slice(bin, 0, 1)}")
         raise "Kaboom!"
 	  end
     end
