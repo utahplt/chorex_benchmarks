@@ -209,3 +209,20 @@ Comparison
 |--------------------------+--------+-------------------------|
 | lots of actors, no try   | 141.16 |                         |
 | lots of actors, with try | 139.98 | 1.01× slower +0.0598 ms |
+
+
+* Compile times
+
+Run the =bench_maker.pl= script to create some big Elixir files:
+
+#+begin_src bash
+  perl bench_maker.pl 10 > big_chor_10.ex
+  perl bench_maker.pl 100 > big_chor_100.ex
+  perl bench_maker.pl 1000 > big_chor_1000.ex
+#+end_src
+
+Now compile everything and use the compile profiler to get compile times:
+
+#+begin_src bash
+  mix compile --force --profile time
+#+end_src

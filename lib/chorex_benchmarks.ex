@@ -51,7 +51,7 @@ defmodule ChorexBenchmarks do
       %{
         "miniblock: with try block" => fn -> LoopBenches.block_runner_try() end,
         "miniblock: without try block" => fn -> LoopBenches.block_runner_no_try() end,
-        "miniblock: using rescue" => fn -> BadBatch.block_runner_try_and_rescue() end,
+        "miniblock: using rescue" => fn -> LoopBenches.block_runner_try_and_rescue() end,
       },
       time: @time,
       memory_time: @memory_time
@@ -60,10 +60,8 @@ defmodule ChorexBenchmarks do
     :ok
   end
 
-  def stats do
+  def loop_stats do
     [
-      miniblock_stats(),
-
       Benchee.run(
         %{
           "flat loop with try, 1000 iterations" => fn -> LoopBenches.flat_runner(1000, true) end,
@@ -88,6 +86,7 @@ defmodule ChorexBenchmarks do
           "loop: with try, 100 iterations, no split work" => fn -> LoopBenches.runner(100, true, false) end,
           "loop: no try, 100 iterations, split work" => fn -> LoopBenches.runner(100, false, true) end,
           "loop: no try, 100 iterations, no split work" => fn -> LoopBenches.runner(100, false, false) end,
+          "loop: crashy, 100 iterations" => fn -> LoopBenches.crashy_runner(100) end,
         },
         time: @time,
         memory_time: @memory_time
@@ -99,6 +98,7 @@ defmodule ChorexBenchmarks do
           "loop: with try, 1000 iterations, no split work" => fn -> LoopBenches.runner(1000, true, false) end,
           "loop: no try, 1000 iterations, split work" => fn -> LoopBenches.runner(1000, false, true) end,
           "loop: no try, 1000 iterations, no split work" => fn -> LoopBenches.runner(1000, false, false) end,
+          "loop: crashy, 1000 iterations" => fn -> LoopBenches.crashy_runner(1000) end,
         },
         time: @time,
         memory_time: @memory_time
@@ -110,10 +110,19 @@ defmodule ChorexBenchmarks do
           "loop: with try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, true, false) end,
           "loop: no try, 10000 iterations, split work" => fn -> LoopBenches.runner(10000, false, true) end,
           "loop: no try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, false, false) end,
+          "loop: crashy, 10000 iterations" => fn -> LoopBenches.crashy_runner(10000) end,
         },
         time: @time,
         memory_time: @memory_time
       ),
+    ]
+  end
+
+  def stats do
+    [
+      miniblock_stats(),
+
+      loop_stats(),
 
       sm_stats(),
 
