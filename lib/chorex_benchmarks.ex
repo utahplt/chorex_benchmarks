@@ -120,7 +120,7 @@ defmodule ChorexBenchmarks do
     :ok
   end
 
-  def nested_loop_stats do
+  def nested_loop_stats(do_heavy? \\ false) do
     Logger.configure(level: :alert) # suppress crash messages
     [
       Benchee.run(
@@ -145,26 +145,28 @@ defmodule ChorexBenchmarks do
         memory_time: @memory_time
       ),
 
-      Benchee.run(
-        %{
-          "loop: with try, 10000 iterations, split work" => fn -> LoopBenches.runner(10000, true, true) end,
-          "loop: with try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, true, false) end,
-          "loop: no try, 10000 iterations, split work" => fn -> LoopBenches.runner(10000, false, true) end,
-          "loop: no try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, false, false) end,
-        },
-        time: @time,
-        memory_time: @memory_time
-      ),
+      (if do_heavy? do
+        Benchee.run(
+          %{
+            "loop: with try, 10000 iterations, split work" => fn -> LoopBenches.runner(10000, true, true) end,
+            "loop: with try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, true, false) end,
+            "loop: no try, 10000 iterations, split work" => fn -> LoopBenches.runner(10000, false, true) end,
+            "loop: no try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, false, false) end,
+          },
+          time: @time,
+          memory_time: @memory_time
+        )
+      end)
     ]
     Logger.configure(level: :warning) # restore
     :ok
   end
 
-  def stats do
+  def stats(do_heavy? \\ false) do
     [
       miniblock_stats(),
       flat_loop_stats(),
-      nested_loop_stats(),
+      nested_loop_stats(do_heavy?),
       sm_stats(),
       # big_chor_stats()
     ]

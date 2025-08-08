@@ -383,14 +383,14 @@ defmodule LoopBenches do
         {:chorex_return, _, _} = m -> m
       end
 
-    dbg({:got1, m1})
+    # dbg({:got1, m1})
 
     m2 =
       receive do
         {:chorex_return, _, _} = m -> m
       end
 
-    dbg({:got2, m2})
+    # dbg({:got2, m2})
 
     {m1, m2}
   end
