@@ -30,34 +30,41 @@ defmodule LoopBenches do
 
   defmodule CrashyNestedLoop do
     defchor [CnRunner, CnMonitor] do
-      def run(CnMonitor.(laps)) do
-        loop_try(CnMonitor.(laps), CnRunner.(0))
-        # CnMonitor.(dbg(:done2))
-        # CnRunner.(dbg(:finished2))
+      def run(CnMonitor.(laps), CnMonitor.(use_try?)) do
+        if CnMonitor.(use_try?) do
+          loop_try(CnMonitor.(laps), CnRunner.(0))
+        else
+          loop_plain(CnMonitor.(laps), CnRunner.(0))
+        end
+      end
+
+      def loop_plain(CnMonitor.(laps), CnRunner.(lap_no)) do
+        CnMonitor.work_hard()
+        CnRunner.work_hard()
+        CnRunner.(lap_no) ~> CnMonitor.(l)
+
+        if CnMonitor.(l < laps) do
+          loop_plain(CnMonitor.(laps), CnRunner.(lap_no + 1))
+        else
+          CnMonitor.(:done)
+          CnRunner.(:finished)
+        end
       end
 
       def loop_try(CnMonitor.(laps), CnRunner.(lap_no)) do
-        # CnRunner.(dbg({:foo, lap_no}))
         try do
           CnMonitor.work_hard()
           CnRunner.work_hard()
           CnRunner.(lap_no) ~> CnMonitor.(l)
-          # CnRunner.(dbg(lap_no))
-          # CnMonitor.(dbg(l))
 
           if CnMonitor.(l < laps) do
             CnMonitor.maybe_explode?(0)
-            # should never be reached if maybe_explode?(0) goes off
-            # CnRunner.(dbg({:bar, lap_no}))
             loop_try(CnMonitor.(laps), CnRunner.(lap_no + 1))
           else
             CnMonitor.(:done)
             CnRunner.(:finished)
-            # CnMonitor.(dbg(:done))
-            # CnRunner.(dbg(:finished))
           end
         rescue
-          # CnRunner.(dbg({:baz, lap_no}))
           loop_try(CnMonitor.(laps), CnRunner.(lap_no + 1))
         end
       end
@@ -338,7 +345,7 @@ defmodule LoopBenches do
     {m1, m2}
   end
 
-  def crashy_nested_runner(laps \\ 100, blow_up? \\ true) do
+  def crashy_nested_runner(laps \\ 100, blow_up? \\ true, use_try? \\ true) do
     Chorex.start(
       CrashyNestedLoop.Chorex,
       %{
@@ -346,7 +353,7 @@ defmodule LoopBenches do
         # CnMonitor => MyCrashyNestedMonitor
         CnMonitor => if(blow_up?, do: MyCrashyNestedMonitor, else: MySafeNestedMonitor)
       },
-      [laps]
+      [laps, use_try?]
     )
 
     m1 =

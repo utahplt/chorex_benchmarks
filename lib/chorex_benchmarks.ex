@@ -91,29 +91,32 @@ defmodule ChorexBenchmarks do
     Logger.configure(level: :alert) # suppress crash messages
     Benchee.run(
       %{
-        "nested, no  crash, 100" => fn -> LoopBenches.crashy_nested_runner(10, false) end,
-        "nested, yes crash, 100" => fn -> LoopBenches.crashy_nested_runner(10, true) end,
+        "nested, no  try,   100" => fn -> LoopBenches.crashy_nested_runner(100, false, false) end,
+        "nested, no  crash, 100" => fn -> LoopBenches.crashy_nested_runner(100, false, true) end,
+        "nested, yes crash, 100" => fn -> LoopBenches.crashy_nested_runner(100, true, true) end,
       },
       time: @time,
       memory_time: @memory_time
     )
-    # Benchee.run(
-    #   %{
-    #     "nested, no  crash, 1000" => fn -> LoopBenches.crashy_nested_runner(1000, false) end,
-    #     "nested, yes crash, 1000" => fn -> LoopBenches.crashy_nested_runner(1000, true) end,
-    #   },
-    #   time: @time,
-    #   memory_time: @memory_time
-    # )
-    # Benchee.run(
-    #   %{
-    #     "nested, no  crash, 10000" => fn -> LoopBenches.crashy_nested_runner(10000, false) end,
-    #     "nested, yes crash, 10000" => fn -> LoopBenches.crashy_nested_runner(10000, true) end,
-    #   },
-    #   time: @time,
-    #   memory_time: @memory_time
-    # )
-    # Logger.configure(level: :warning) # restore
+    Benchee.run(
+      %{
+        "nested, no  try,   1000" => fn -> LoopBenches.crashy_nested_runner(1000, false, false) end,
+        "nested, no  crash, 1000" => fn -> LoopBenches.crashy_nested_runner(1000, false) end,
+        "nested, yes crash, 1000" => fn -> LoopBenches.crashy_nested_runner(1000, true) end,
+      },
+      time: @time,
+      memory_time: @memory_time
+    )
+    Benchee.run(
+      %{
+        "nested, no  try,   10000" => fn -> LoopBenches.crashy_nested_runner(10000, false, false) end,
+        "nested, no  crash, 10000" => fn -> LoopBenches.crashy_nested_runner(10000, false) end,
+        "nested, yes crash, 10000" => fn -> LoopBenches.crashy_nested_runner(10000, true) end,
+      },
+      time: @time,
+      memory_time: @memory_time
+    )
+    Logger.configure(level: :warning) # restore
     :ok
   end
 
