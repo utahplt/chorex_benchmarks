@@ -518,7 +518,7 @@ defmodule LoopBenches do
     end
 
     @impl true
-    def good_hash?({bin, x}) do
+    def good_hash?({bin, _x}) do
       if <<0>> == binary_slice(bin, 0, 1) do
         # IO.write(:stderr, "good #{x}\n")
         true

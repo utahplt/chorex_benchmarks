@@ -162,11 +162,12 @@ defmodule ChorexBenchmarks do
     :ok
   end
 
-  def stats(do_heavy? \\ false) do
+  def stats(_do_heavy? \\ false) do
     [
       miniblock_stats(),
       flat_loop_stats(),
-      nested_loop_stats(do_heavy?),
+      new_nested_stats(),
+      # nested_loop_stats(do_heavy?),
       sm_stats(),
       # big_chor_stats()
     ]

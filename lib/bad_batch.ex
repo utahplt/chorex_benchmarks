@@ -1,5 +1,5 @@
 defmodule BadBatch do
-  import Chorex
+  # import Chorex
 
   # quote do
   #   defchor [Searcher, Verifier] do
