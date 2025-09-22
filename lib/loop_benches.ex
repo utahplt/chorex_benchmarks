@@ -256,7 +256,6 @@ defmodule LoopBenches do
 
     @impl true
     def work_hard() do
-      # IO.puts(".")
       for i <- 0..1000 do
         :crypto.hash(:sha256, "foo#{i}")
       end

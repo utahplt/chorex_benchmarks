@@ -1,5 +1,5 @@
 defmodule ChorexBenchmarks do
-  @time 10
+  @time 60
   @memory_time 0
 
   def smol_stats do
@@ -10,7 +10,9 @@ defmodule ChorexBenchmarks do
         "state machine with try & recovery" => fn -> TbagBenches.go(:bad, true) end
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
     )
     :ok
   end
@@ -37,7 +39,9 @@ defmodule ChorexBenchmarks do
         "state machine with try & recovery" => fn -> TbagBenches.go(:bad, true) end
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
     )
     Logger.configure(level: :warning) # restore
     :ok
@@ -54,7 +58,9 @@ defmodule ChorexBenchmarks do
         "miniblock: using rescue" => fn -> LoopBenches.block_runner_try_and_rescue() end,
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
     )
     Logger.configure(level: :warning) # restore
     :ok
@@ -63,15 +69,17 @@ defmodule ChorexBenchmarks do
   def flat_loop_stats do
     Logger.configure(level: :alert) # suppress crash messages
     [
-      Benchee.run(
-        %{
-          "flat loop with try, 1000 iterations" => fn -> LoopBenches.flat_runner(1000, true) end,
-          "flat loop without try, 1000 iterations" => fn -> LoopBenches.flat_runner(1000, false) end,
-          "loop: crashy, 1000 iterations" => fn -> LoopBenches.crashy_runner(1000) end,
-        },
-        time: @time,
-        memory_time: @memory_time
-      ),
+      # Benchee.run(
+      #   %{
+      #     "flat loop with try, 1000 iterations" => fn -> LoopBenches.flat_runner(1000, true) end,
+      #     "flat loop without try, 1000 iterations" => fn -> LoopBenches.flat_runner(1000, false) end,
+      #     "loop: crashy, 1000 iterations" => fn -> LoopBenches.crashy_runner(1000) end,
+      #   },
+      #   time: @time,
+      #   memory_time: @memory_time,
+      # formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
+      # ),
 
       Benchee.run(
         %{
@@ -80,7 +88,9 @@ defmodule ChorexBenchmarks do
           "loop: crashy, 10000 iterations" => fn -> LoopBenches.crashy_runner(10000) end,
         },
         time: @time,
-        memory_time: @memory_time
+        memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
       ),
     ]
     Logger.configure(level: :warning) # restore
@@ -96,7 +106,8 @@ defmodule ChorexBenchmarks do
         "nested, yes crash, 100" => fn -> LoopBenches.crashy_nested_runner(100, true, true) end,
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
     )
     Benchee.run(
       %{
@@ -105,7 +116,8 @@ defmodule ChorexBenchmarks do
         "nested, yes crash, 1000" => fn -> LoopBenches.crashy_nested_runner(1000, true) end,
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
     )
     Benchee.run(
       %{
@@ -114,7 +126,8 @@ defmodule ChorexBenchmarks do
         "nested, yes crash, 10000" => fn -> LoopBenches.crashy_nested_runner(10000, true) end,
       },
       time: @time,
-      memory_time: @memory_time
+      memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
     )
     Logger.configure(level: :warning) # restore
     :ok
@@ -131,7 +144,9 @@ defmodule ChorexBenchmarks do
           "loop: no try, 100 iterations, no split work" => fn -> LoopBenches.runner(100, false, false) end,
         },
         time: @time,
-        memory_time: @memory_time
+        memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
       ),
 
       Benchee.run(
@@ -142,7 +157,9 @@ defmodule ChorexBenchmarks do
           "loop: no try, 1000 iterations, no split work" => fn -> LoopBenches.runner(1000, false, false) end,
         },
         time: @time,
-        memory_time: @memory_time
+        memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
       ),
 
       (if do_heavy? do
@@ -154,7 +171,9 @@ defmodule ChorexBenchmarks do
             "loop: no try, 10000 iterations, no split work" => fn -> LoopBenches.runner(10000, false, false) end,
           },
           time: @time,
-          memory_time: @memory_time
+          memory_time: @memory_time,
+      formatters: [{Benchee.Formatters.Console, extended_statistics: true}]
+
         )
       end)
     ]
