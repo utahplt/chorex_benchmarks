@@ -1,5 +1,5 @@
 defmodule ChorexBenchmarks do
-  @time 60
+  @time 20
   @memory_time 0
 
   # state-machine stats
